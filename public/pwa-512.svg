@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Urban Harvest Hub app icon</title>
+  <desc id="desc">Large green progressive web app icon with eco leaf design.</desc>
+  <rect width="512" height="512" rx="120" fill="#2f6b4f" />
+  <circle cx="256" cy="256" r="150" fill="#f6f3ec" opacity="0.16" />
+  <path d="M256 110c-62 44-101 107-101 164 0 72 42 123 101 141 59-18 101-69 101-141 0-57-39-120-101-164Z" fill="#f6f3ec"/>
+  <path d="M256 143c-41 30-66 70-66 111 0 45 26 79 66 92 40-13 66-47 66-92 0-41-25-81-66-111Z" fill="#c77643"/>
+  <path d="M256 154v210" stroke="#2f6b4f" stroke-width="18" stroke-linecap="round"/>
+  <path d="M256 239c-24-23-56-37-89-37" stroke="#2f6b4f" stroke-width="18" stroke-linecap="round"/>
+  <path d="M256 277c28-19 57-28 89-28" stroke="#2f6b4f" stroke-width="18" stroke-linecap="round"/>
+</svg>

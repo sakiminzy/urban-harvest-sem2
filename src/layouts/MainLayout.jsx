@@ -1,10 +1,13 @@
 import { Outlet } from "react-router-dom";
 import Footer from "../components/layout/Footer";
 import Navbar from "../components/layout/Navbar";
+import NotificationPrompt from "../components/ui/NotificationPrompt";
+import OfflineStatus from "../components/ui/OfflineStatus";
+import PwaInstallPrompt from "../components/ui/PwaInstallPrompt";
 
 function MainLayout() {
   return (
-    <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,_rgba(47,107,79,0.08),_transparent_34%),linear-gradient(180deg,_#f6f3ec_0%,_#fdfcf8_100%)] text-slate-800">
+    <div className="app-shell flex min-h-screen flex-col text-slate-800">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-forest"
@@ -13,6 +16,9 @@ function MainLayout() {
       </a>
 
       <Navbar />
+      <PwaInstallPrompt />
+      <NotificationPrompt />
+      <OfflineStatus />
 
       <main
         id="main-content"

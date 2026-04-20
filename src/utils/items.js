@@ -33,7 +33,11 @@ export function getAllItems() {
 }
 
 export function getFeaturedItems() {
-  return items.filter((item) => item.featured);
+  return items.map((item) => ({
+    ...item,
+    dbId: item._id || "",
+    imageAlt: item.imageAlt || item.alt,
+  })).filter((item) => item.featured);
 }
 
 export function getItemById(id) {

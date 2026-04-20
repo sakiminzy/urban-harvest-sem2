@@ -1,20 +1,99 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import GeolocationPanel from "../components/common/GeolocationPanel";
 import ItemCard from "../components/common/ItemCard";
 import WeatherPanel from "../components/common/WeatherPanel";
 import SectionHeading from "../components/ui/SectionHeading";
 import useWeather from "../hooks/useWeather";
-import {
-  formatItemDate,
-  formatPrice,
-  getItemById,
-  getRelatedItems,
-} from "../utils/items";
+import { fetchItemById, fetchItems } from "../services/itemApi";
+import { formatItemDate, formatPrice } from "../utils/items";
 
 function ItemDetailPage() {
   const { id } = useParams();
-  const item = getItemById(id);
-  const relatedItems = item ? getRelatedItems(item.id, item.category).slice(0, 2) : [];
-  const { weather, loading, error } = useWeather(item);
+  const [item, setItem] = useState(null);
+  const [relatedItems, setRelatedItems] = useState([]);
+  const [loadingItem, setLoadingItem] = useState(true);
+  const [error, setError] = useState("");
+  const {
+    weather,
+    loading: weatherLoading,
+    error: weatherError,
+  } = useWeather(item);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadItemDetails() {
+      setLoadingItem(true);
+      setError("");
+
+      try {
+        const currentItem = await fetchItemById(id);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setItem(currentItem);
+
+        const categoryItems = await fetchItems({ category: currentItem.category });
+
+        if (isMounted) {
+          setRelatedItems(
+            categoryItems.filter((relatedItem) => relatedItem.id !== currentItem.id).slice(0, 2)
+          );
+        }
+      } catch (fetchError) {
+        if (isMounted) {
+          setError(fetchError.message);
+          setItem(null);
+          setRelatedItems([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingItem(false);
+        }
+      }
+    }
+
+    loadItemDetails();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
+
+  if (loadingItem) {
+    return (
+      <section className="space-y-6">
+        <SectionHeading
+          eyebrow="Loading"
+          title="Loading item details"
+          description="Urban Harvest Hub is fetching the selected item from the backend API."
+        />
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="space-y-6">
+        <SectionHeading
+          eyebrow="Load error"
+          title="We couldn't load this item right now"
+          description={error}
+        />
+        <div className="flex flex-wrap gap-4">
+          <Link to="/categories" className="btn-primary">
+            Browse categories
+          </Link>
+          <Link to="/" className="btn-secondary">
+            Return home
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   if (!item) {
     return (
@@ -99,7 +178,11 @@ function ItemDetailPage() {
 
         <aside className="space-y-6">
           {item.type !== "Product" ? (
-            <WeatherPanel weather={weather} loading={loading} error={error} />
+            <WeatherPanel
+              weather={weather}
+              loading={weatherLoading}
+              error={weatherError}
+            />
           ) : (
             <section className="card-surface border border-slate-200">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-earth">
@@ -129,6 +212,8 @@ function ItemDetailPage() {
               understand.
             </p>
           </section>
+
+          <GeolocationPanel item={item} />
         </aside>
       </section>
 

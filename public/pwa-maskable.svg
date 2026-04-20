@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Urban Harvest Hub maskable icon</title>
+  <desc id="desc">Maskable icon with extra padding for mobile launcher support.</desc>
+  <rect width="512" height="512" fill="#2f6b4f" />
+  <circle cx="256" cy="256" r="118" fill="#f6f3ec" opacity="0.16" />
+  <path d="M256 146c-50 36-80 88-80 136 0 57 33 98 80 112 47-14 80-55 80-112 0-48-30-100-80-136Z" fill="#f6f3ec"/>
+  <path d="M256 172c-31 23-50 54-50 86 0 35 19 61 50 72 31-11 50-37 50-72 0-32-19-63-50-86Z" fill="#c77643"/>
+  <path d="M256 183v161" stroke="#2f6b4f" stroke-width="16" stroke-linecap="round"/>
+  <path d="M256 249c-18-18-43-28-68-28" stroke="#2f6b4f" stroke-width="16" stroke-linecap="round"/>
+  <path d="M256 278c20-14 44-21 68-21" stroke="#2f6b4f" stroke-width="16" stroke-linecap="round"/>
+</svg>

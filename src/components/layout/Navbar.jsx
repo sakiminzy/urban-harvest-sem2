@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import ThemeToggle from "../ui/ThemeToggle";
 
 const navLinkClass = ({ isActive }) =>
   `rounded-full px-4 py-2 text-sm font-semibold transition ${
@@ -30,6 +31,7 @@ function Navbar() {
           <NavLink to="/booking" className={navLinkClass}>
             Booking
           </NavLink>
+          <ThemeToggle />
         </nav>
       </div>
     </header>

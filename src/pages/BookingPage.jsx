@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import SectionHeading from "../components/ui/SectionHeading";
-import { getBookingOptions } from "../utils/items";
+import { createBooking, fetchItems } from "../services/itemApi";
 
 const initialForm = {
   name: "",
@@ -11,24 +11,63 @@ const initialForm = {
 };
 
 function BookingPage() {
-  const bookableItems = getBookingOptions();
   const [searchParams] = useSearchParams();
-  const preselectedItem = searchParams.get("item") || "";
-  const [formData, setFormData] = useState({
-    ...initialForm,
-    selectedItem: preselectedItem,
-  });
+  const preselectedItemSlug = searchParams.get("item") || "";
+  const [bookableItems, setBookableItems] = useState([]);
+  const [formData, setFormData] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
+  const [loadingItems, setLoadingItems] = useState(true);
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   useEffect(() => {
-    if (preselectedItem) {
-      setFormData((currentForm) => ({
-        ...currentForm,
-        selectedItem: preselectedItem,
-      }));
+    let isMounted = true;
+
+    async function loadBookableItems() {
+      setLoadingItems(true);
+      setApiError("");
+
+      try {
+        const items = await fetchItems();
+        const filteredItems = items.filter(
+          (item) => item.type === "Workshop" || item.type === "Event"
+        );
+
+        if (isMounted) {
+          setBookableItems(filteredItems);
+
+          const preselectedItem = filteredItems.find(
+            (item) => item.id === preselectedItemSlug
+          );
+
+          setFormData((currentForm) => ({
+            ...currentForm,
+            selectedItem: preselectedItem?.dbId || "",
+          }));
+        }
+      } catch (fetchError) {
+        if (isMounted) {
+          setApiError(fetchError.message);
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingItems(false);
+        }
+      }
     }
-  }, [preselectedItem]);
+
+    loadBookableItems();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [preselectedItemSlug]);
+
+  const selectedBookingItem = useMemo(
+    () => bookableItems.find((item) => item.dbId === formData.selectedItem),
+    [bookableItems, formData.selectedItem]
+  );
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -59,7 +98,7 @@ function BookingPage() {
     return nextErrors;
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const validationErrors = validateForm();
@@ -70,15 +109,28 @@ function BookingPage() {
       return;
     }
 
-    const selectedItemTitle =
-      bookableItems.find((item) => item.id === formData.selectedItem)?.title ||
-      "your selected activity";
+    setLoadingSubmit(true);
+    setApiError("");
 
-    setMessage(
-      `Thanks, ${formData.name}. Your booking request for ${selectedItemTitle} has been recorded.`
-    );
-    setErrors({});
-    setFormData(initialForm);
+    try {
+      const result = await createBooking({
+        name: formData.name,
+        email: formData.email,
+        itemId: formData.selectedItem,
+      });
+
+      setMessage(
+        result.message ||
+          `Thanks, ${formData.name}. Your booking request has been recorded successfully.`
+      );
+      setErrors({});
+      setFormData(initialForm);
+    } catch (submitError) {
+      setApiError(submitError.message);
+      setMessage("We could not submit your booking right now.");
+    } finally {
+      setLoadingSubmit(false);
+    }
   }
 
   return (
@@ -86,35 +138,43 @@ function BookingPage() {
       <SectionHeading
         eyebrow="Booking"
         title="Register for a workshop or event"
-        description="Choose an activity from Urban Harvest Hub, enter your details, and submit the form. Validation helps prevent incomplete bookings."
+        description="Choose an activity from Urban Harvest Hub, enter your details, and submit the form. This page now sends booking data to the backend API."
       />
 
       <section className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
         <aside className="card-surface border border-slate-200">
           <h2 className="text-2xl font-bold text-forest">Available registrations</h2>
           <p className="mt-3 text-slate-600">
-            These are the bookable experiences currently available in the app.
+            These bookable experiences are now loaded from the backend API.
           </p>
 
-          <ul className="mt-6 space-y-4">
-            {bookableItems.map((item) => (
-              <li
-                key={item.id}
-                className="rounded-2xl border border-slate-200 bg-sand/60 p-4"
-              >
-                <p className="font-semibold text-slate-900">{item.title}</p>
-                <p className="mt-1 text-sm text-slate-600">
-                  {item.type} | {item.location}
-                </p>
-                <Link
-                  to={`/items/${item.id}`}
-                  className="mt-3 inline-flex text-sm font-semibold text-forest underline-offset-4 hover:underline"
+          {loadingItems ? (
+            <p className="mt-6 text-slate-600">Loading available workshops and events...</p>
+          ) : apiError && bookableItems.length === 0 ? (
+            <div className="mt-6 rounded-2xl bg-rose-50 px-4 py-3 text-rose-700">
+              {apiError}
+            </div>
+          ) : (
+            <ul className="mt-6 space-y-4">
+              {bookableItems.map((item) => (
+                <li
+                  key={item.id}
+                  className="rounded-2xl border border-slate-200 bg-sand/60 p-4"
                 >
-                  View details
-                </Link>
-              </li>
-            ))}
-          </ul>
+                  <p className="font-semibold text-slate-900">{item.title}</p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {item.type} | {item.location}
+                  </p>
+                  <Link
+                    to={`/items/${item.id}`}
+                    className="mt-3 inline-flex text-sm font-semibold text-forest underline-offset-4 hover:underline"
+                  >
+                    View details
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </aside>
 
         <section className="card-surface border border-slate-200">
@@ -187,10 +247,11 @@ function BookingPage() {
                 aria-describedby={
                   errors.selectedItem ? "selected-item-error" : undefined
                 }
+                disabled={loadingItems || bookableItems.length === 0}
               >
                 <option value="">Choose an activity</option>
                 {bookableItems.map((item) => (
-                  <option key={item.id} value={item.id}>
+                  <option key={item.dbId} value={item.dbId}>
                     {item.title}
                   </option>
                 ))}
@@ -220,22 +281,38 @@ function BookingPage() {
               />
             </div>
 
+            {selectedBookingItem && (
+              <div className="rounded-2xl bg-sand/70 px-4 py-3 text-sm text-slate-700">
+                You are registering for <strong>{selectedBookingItem.title}</strong>.
+              </div>
+            )}
+
+            {apiError && (
+              <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {apiError}
+              </p>
+            )}
+
             {message && (
               <p
                 className={`rounded-2xl px-4 py-3 text-sm ${
-                  Object.keys(errors).length > 0
+                  Object.keys(errors).length > 0 || apiError
                     ? "bg-rose-50 text-rose-700"
                     : "bg-emerald-50 text-emerald-700"
                 }`}
                 aria-live="polite"
-                role={Object.keys(errors).length > 0 ? "alert" : "status"}
+                role={Object.keys(errors).length > 0 || apiError ? "alert" : "status"}
               >
                 {message}
               </p>
             )}
 
-            <button type="submit" className="btn-primary">
-              Submit booking
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={loadingSubmit || loadingItems}
+            >
+              {loadingSubmit ? "Submitting..." : "Submit booking"}
             </button>
           </form>
         </section>

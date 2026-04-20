@@ -1,34 +1,140 @@
 # Urban Harvest Hub
 
-Urban Harvest Hub is a responsive Single Page Application built for Task 1 of the COMP50017 Web Development assignment. The app showcases eco-friendly products, workshops, and events for sustainability-focused communities using React, Vite, React Router, and Tailwind CSS.
+Urban Harvest Hub is a full-stack Progressive Web Application built for Task 2 of the COMP50017 Web Development assignment. It extends the earlier React frontend into a mobile-first PWA with an Express REST API, MongoDB database integration, offline support, installability, and mobile-friendly capabilities.
 
-## Project Description
+## Task 2 Overview
 
-This project was created to demonstrate the core requirements of a modern SPA for university assessment. It allows users to browse sustainability content by category, search and filter items, open detailed views, see live weather information for workshops and events, and register through a validated booking form.
+The purpose of Task 2 is to transform the Urban Harvest Hub frontend into a complete full-stack application. This version demonstrates:
 
-## Features
+- React + Vite frontend integration with a custom Express API
+- MongoDB data persistence using Mongoose
+- Progressive Web App features including manifest, service worker, caching, and install prompt
+- Mobile-focused enhancements such as dark mode, offline awareness, geolocation, and notification permission support
+- A clean structure that is easy to explain in a university presentation
 
-- Responsive SPA built with React and Vite
-- Client-side routing for `/`, `/categories`, `/items/:id`, `/booking`, and `404`
-- Internal JSON seed data for products, workshops, and events
+## Features Implemented
+
+### Frontend
+- Responsive React SPA with React Router
+- Pages for home, categories, item detail, booking, and 404
+- API-powered item listing, item detail loading, and booking submission
 - Combined search and category filtering
-- Master-detail browsing flow on the categories page
-- Dynamic item detail page using route parameters
-- Live weather integration for events and workshops
-- Reusable cards, filters, search bar, and shared layout components
-- Booking/register form with validation and clear feedback
-- Tailwind CSS custom theme colors, font, and custom utility/component classes
-- Accessible structure with labels, alt text, focus states, and keyboard-friendly controls
+- Master-detail browsing on the categories page
+- Weather API integration for workshops and events
+- Accessible forms, cards, and navigation
 
-## Technologies
+### Backend
+- Express server with modular structure
+- REST API routes for items, bookings, and health checks
+- Controllers, models, middleware, and routes split into beginner-friendly files
+- MongoDB integration with Mongoose
+- Input validation for items and bookings
+- Centralized error handling
+- Basic security headers using Helmet
 
+### PWA
+- Web app manifest
+- Service worker registration
+- Offline fallback page
+- App shell caching
+- Cached item API responses for offline-friendly browsing
+- Install prompt component
+- Push notification-ready service worker structure
+
+### Mobile Features
+- Dark mode toggle with saved theme preference
+- Offline status banner
+- Geolocation on item detail pages with distance estimation
+- Notification permission prompt for future update alerts
+
+## Tech Stack
+
+### Frontend
 - React
 - Vite
 - React Router DOM
 - Tailwind CSS
-- PostCSS
-- Open-Meteo Forecast API
-- Plain JavaScript JSX with functional components
+- Plain JavaScript JSX
+
+### Backend
+- Node.js
+- Express
+- Mongoose
+- MongoDB
+- Morgan
+- CORS
+- Helmet
+- dotenv
+
+### External APIs
+- Open-Meteo Forecast API for event/workshop weather information
+
+## Folder Structure
+
+```text
+.
+|- public/
+|  |- manifest.webmanifest
+|  |- sw.js
+|  |- offline.html
+|  |- pwa-192.svg
+|  |- pwa-512.svg
+|  `- pwa-maskable.svg
+|- server/
+|  |- config/
+|  |  `- db.js
+|  |- controllers/
+|  |  |- bookingController.js
+|  |  |- healthController.js
+|  |  `- itemController.js
+|  |- middleware/
+|  |  |- errorHandler.js
+|  |  |- notFound.js
+|  |  `- validateRequest.js
+|  |- models/
+|  |  |- Booking.js
+|  |  `- Item.js
+|  |- routes/
+|  |  |- bookingRoutes.js
+|  |  |- healthRoutes.js
+|  |  `- itemRoutes.js
+|  |- utils/
+|  |  |- seedBookings.js
+|  |  |- seedDatabase.js
+|  |  `- seedItems.js
+|  |- app.js
+|  `- server.js
+|- src/
+|  |- components/
+|  |- hooks/
+|  |- layouts/
+|  |- pages/
+|  |- services/
+|  |- utils/
+|  |- App.jsx
+|  |- index.css
+|  `- main.jsx
+|- .env.example
+|- package.json
+`- README.md
+```
+
+## Environment Variables
+
+Create a root `.env` file:
+
+```bash
+PORT=5000
+MONGODB_URI=mongodb://127.0.0.1:27017/urban-harvest-hub
+CLIENT_URL=http://localhost:5173
+NODE_ENV=development
+```
+
+Create a frontend `src/.env` or root `.env.local` entry for Vite if needed:
+
+```bash
+VITE_API_BASE_URL=http://localhost:5000/api
+```
 
 ## Setup Instructions
 
@@ -38,92 +144,97 @@ Install dependencies:
 npm install
 ```
 
-Start the development server:
+Make sure MongoDB is running locally.
+
+Seed the database:
+
+```bash
+npm run seed
+```
+
+Run the backend:
+
+```bash
+npm run server:dev
+```
+
+Run the frontend:
 
 ```bash
 npm run dev
 ```
 
-Create a production build:
+## MongoDB Connection
 
-```bash
-npm run build
-```
+The backend uses Mongoose to connect to MongoDB through the `MONGODB_URI` value stored in the `.env` file. The database stores two main collections:
 
-Preview the production build:
+- `items`
+- `bookings`
 
-```bash
-npm run preview
-```
+## API Route Summary
 
-## Routes
+### Health
+- `GET /api/health`
 
-- `/` : Home page with project introduction and featured content
-- `/categories` : Searchable and filterable categories page with master-detail view
-- `/items/:id` : Dynamic detail page for an individual item
-- `/booking` : Booking and registration form
-- `*` : Friendly 404 not found route
+### Items
+- `GET /api/items`
+- `GET /api/items/:id`
+- `POST /api/items`
+- `PUT /api/items/:id`
+- `DELETE /api/items/:id`
 
-## API Used
+### Bookings
+- `GET /api/bookings`
+- `POST /api/bookings`
 
-The project integrates the Open-Meteo Forecast API.
+## PWA Features
 
-- API website: https://open-meteo.com/en/docs
-- Purpose: show current weather conditions for workshop and event locations
-- Data shown: current temperature, forecast summary, daily high and low, and wind speed
-- Why it was chosen: simple public API with no key required, suitable for assignment demonstration
+- Installable web app manifest
+- Theme color and app metadata
+- Service worker for caching and offline support
+- Offline fallback page
+- Cached app shell assets
+- Cached API item responses for limited offline browsing
+- Install prompt component
+- Push notification-ready service worker event handler
+
+### Suggested PWA Testing
+1. Run the frontend and backend locally.
+2. Open DevTools and confirm the manifest is detected.
+3. Confirm the service worker registers successfully.
+4. Install the app using the install prompt.
+5. Load the categories page once while online.
+6. Switch the browser to offline mode and refresh.
+7. Confirm cached pages still work and the offline banner appears.
+
+## Mobile Features
+
+- Dark mode toggle with saved user preference
+- Geolocation-based distance estimation on item detail pages
+- Offline status indicator
+- Notification permission prompt for future update alerts
 
 ## Accessibility Features
 
-- Semantic HTML using `header`, `main`, `section`, `article`, `nav`, `aside`, and `footer`
+- Semantic HTML across layout and pages
 - Skip link for keyboard users
-- Visible focus styles on buttons, links, filters, and form elements
-- Descriptive labels for all form fields
-- Descriptive alt text for all item images
-- `aria-live` feedback for booking messages and weather updates
-- `aria-pressed` on active category filters
-- Keyboard-friendly buttons and links throughout the interface
+- Visible focus states on links, buttons, filters, and forms
+- Descriptive labels and validation messages for form controls
+- Alt text for all content images
+- Keyboard-friendly interaction patterns
+- `aria-live` status feedback for dynamic content
 
-## Folder Structure Summary
+## Security and Deployment Readiness
 
-```text
-src/
-|- components/
-|  |- common/
-|  |  |- ItemCard.jsx
-|  |  |- ItemDetailPanel.jsx
-|  |  `- WeatherPanel.jsx
-|  |- layout/
-|  |  |- Footer.jsx
-|  |  `- Navbar.jsx
-|  `- ui/
-|     |- CategoryFilter.jsx
-|     |- SearchBar.jsx
-|     `- SectionHeading.jsx
-|- data/
-|  `- items.json
-|- hooks/
-|  `- useWeather.js
-|- layouts/
-|  `- MainLayout.jsx
-|- pages/
-|  |- BookingPage.jsx
-|  |- CategoriesPage.jsx
-|  |- HomePage.jsx
-|  |- ItemDetailPage.jsx
-|  `- NotFoundPage.jsx
-|- services/
-|  `- weatherService.js
-|- utils/
-|  `- items.js
-|- App.jsx
-|- index.css
-`- main.jsx
-```
+- Environment variables for secrets and environment-specific values
+- Basic security headers using Helmet
+- Centralized error handling
+- Request validation before database writes
+- Separate backend structure suitable for later deployment
 
-## Notes for Presentation
+## Notes For Presentation
 
-- The categories page is the best place to demonstrate combined search and filtering.
-- The item detail page is the best place to explain route parameters and weather API integration.
-- The booking page is the best place to explain form validation and user feedback.
-- The project uses realistic seed data to satisfy the internal JSON requirement from the assignment brief.
+- Use the categories page to demonstrate API loading, search/filter, and master-detail interaction.
+- Use the item detail page to explain route params, weather API use, and geolocation.
+- Use the booking page to explain frontend-backend form submission and validation.
+- Use the install prompt, offline banner, and dark mode toggle to demonstrate the PWA/mobile criteria.

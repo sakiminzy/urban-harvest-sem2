@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-labelledby="title desc">
+  <title id="title">Urban Harvest Hub icon</title>
+  <desc id="desc">Green rounded square app icon with leaf and hub circle illustration.</desc>
+  <rect width="192" height="192" rx="42" fill="#2f6b4f" />
+  <circle cx="96" cy="96" r="52" fill="#f6f3ec" opacity="0.16" />
+  <path d="M96 42c-23 16-35 40-35 60 0 25 15 43 35 48 20-5 35-23 35-48 0-20-12-44-35-60Z" fill="#f6f3ec"/>
+  <path d="M96 54c-14 11-22 27-22 43 0 17 9 29 22 34 13-5 22-17 22-34 0-16-8-32-22-43Z" fill="#c77643"/>
+  <path d="M96 58v79" stroke="#2f6b4f" stroke-width="7" stroke-linecap="round"/>
+  <path d="M96 90c-9-9-22-14-31-14" stroke="#2f6b4f" stroke-width="7" stroke-linecap="round"/>
+  <path d="M96 104c10-7 20-10 31-10" stroke="#2f6b4f" stroke-width="7" stroke-linecap="round"/>
+</svg>

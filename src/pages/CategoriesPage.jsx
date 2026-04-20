@@ -4,13 +4,48 @@ import ItemDetailPanel from "../components/common/ItemDetailPanel";
 import CategoryFilter from "../components/ui/CategoryFilter";
 import SearchBar from "../components/ui/SearchBar";
 import SectionHeading from "../components/ui/SectionHeading";
-import { categories, filterItems, getAllItems } from "../utils/items";
+import { fetchItems } from "../services/itemApi";
+import { categories, filterItems } from "../utils/items";
 
 function CategoriesPage() {
-  const allItems = getAllItems();
+  const [allItems, setAllItems] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedItemId, setSelectedItemId] = useState(allItems[0]?.id ?? "");
+  const [selectedItemId, setSelectedItemId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadItems() {
+      setLoading(true);
+      setError("");
+
+      try {
+        const items = await fetchItems();
+
+        if (isMounted) {
+          setAllItems(items);
+          setSelectedItemId(items[0]?.id || "");
+        }
+      } catch (fetchError) {
+        if (isMounted) {
+          setError(fetchError.message);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadItems();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const filteredItems = useMemo(
     () => filterItems(allItems, activeCategory, searchTerm),
@@ -31,7 +66,7 @@ function CategoriesPage() {
       <SectionHeading
         eyebrow="Categories"
         title="Filter and explore eco-friendly content"
-        description="This page reads its content from internal JSON seed data. Use the category buttons and search input to narrow the results, then select any card to see the master-detail preview."
+        description="This page now loads item data from the Urban Harvest Hub backend API. Use the category buttons and search input together to narrow the results, then select any card to see the master-detail preview."
       />
 
       <section className="card-surface border border-slate-200">
@@ -58,7 +93,19 @@ function CategoriesPage() {
         <div>
           <h2 className="mb-4 text-2xl font-bold text-forest">Browse the collection</h2>
 
-          {filteredItems.length === 0 ? (
+          {loading ? (
+            <div className="card-surface border border-dashed border-slate-300">
+              <p className="text-lg font-semibold text-slate-900">Loading items...</p>
+              <p className="mt-2 text-slate-600">
+                Fetching the latest product, workshop, and event listings from the API.
+              </p>
+            </div>
+          ) : error ? (
+            <div className="card-surface border border-rose-200 bg-rose-50">
+              <p className="text-lg font-semibold text-rose-700">Unable to load items</p>
+              <p className="mt-2 text-rose-600">{error}</p>
+            </div>
+          ) : filteredItems.length === 0 ? (
             <div className="card-surface border border-dashed border-slate-300">
               <p className="text-lg font-semibold text-slate-900">No matches found</p>
               <p className="mt-2 text-slate-600">
@@ -83,7 +130,23 @@ function CategoriesPage() {
 
         <div className="xl:sticky xl:top-8 xl:self-start">
           <h2 className="mb-4 text-2xl font-bold text-forest">Master-detail preview</h2>
-          <ItemDetailPanel item={selectedItem} />
+          {loading ? (
+            <div className="card-surface border border-dashed border-slate-300">
+              <p className="text-lg font-semibold text-slate-900">Preparing preview...</p>
+              <p className="mt-2 text-slate-600">
+                The selected item details will appear here once the API data finishes loading.
+              </p>
+            </div>
+          ) : error ? (
+            <div className="card-surface border border-rose-200 bg-rose-50">
+              <p className="text-lg font-semibold text-rose-700">Preview unavailable</p>
+              <p className="mt-2 text-rose-600">
+                The API request failed, so the master-detail panel cannot display item data right now.
+              </p>
+            </div>
+          ) : (
+            <ItemDetailPanel item={selectedItem} />
+          )}
         </div>
       </section>
     </div>

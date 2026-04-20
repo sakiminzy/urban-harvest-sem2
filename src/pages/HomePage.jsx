@@ -1,15 +1,50 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ItemCard from "../components/common/ItemCard";
 import SectionHeading from "../components/ui/SectionHeading";
-import { categories, getFeaturedItems } from "../utils/items";
+import { fetchItems } from "../services/itemApi";
+import { categories } from "../utils/items";
 
 function HomePage() {
-  const featuredItems = getFeaturedItems().slice(0, 3);
+  const [featuredItems, setFeaturedItems] = useState([]);
+  const [loadingFeatured, setLoadingFeatured] = useState(true);
+  const [featuredError, setFeaturedError] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadFeaturedItems() {
+      setLoadingFeatured(true);
+      setFeaturedError("");
+
+      try {
+        const items = await fetchItems({ featured: "true" });
+
+        if (isMounted) {
+          setFeaturedItems(items.slice(0, 3));
+        }
+      } catch (error) {
+        if (isMounted) {
+          setFeaturedError(error.message);
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingFeatured(false);
+        }
+      }
+    }
+
+    loadFeaturedItems();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="space-y-16">
       <section className="grid items-center gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-[2rem] bg-white p-8 shadow-soft sm:p-10">
+        <div className="rounded-[2rem] bg-white p-8 shadow-soft dark:bg-slate-900 sm:p-10">
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-earth">
             Sustainable Community Living
           </p>
@@ -17,11 +52,10 @@ function HomePage() {
             Urban Harvest Hub helps communities shop smarter, learn practical
             green skills, and join local eco events.
           </h1>
-          <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-            This responsive single page application showcases eco-friendly
-            products, hands-on workshops, and local events across Food,
-            Lifestyle, and Education. It is designed to be simple to explore
-            and easy to demonstrate in a university presentation.
+          <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
+            This full-stack progressive web app combines React, Express,
+            MongoDB, offline support, and mobile-friendly features into one
+            clear university-ready Task 2 submission.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-4">
@@ -37,26 +71,32 @@ function HomePage() {
         <aside className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
           <div className="card-surface border border-slate-200 bg-forest text-white">
             <p className="text-sm uppercase tracking-[0.2em] text-white/80">
-              Community reach
+              Full-stack
             </p>
-            <p className="mt-3 text-4xl font-bold">9+</p>
+            <p className="mt-3 text-4xl font-bold">API + PWA</p>
             <p className="mt-2 text-white/85">
-              realistic items covering products, workshops, and events
+              React frontend, Express REST API, MongoDB, offline support
             </p>
           </div>
           <div className="card-surface border border-slate-200">
             <p className="text-sm uppercase tracking-[0.2em] text-earth">Focus</p>
-            <p className="mt-3 text-2xl font-bold text-slate-900">Low-waste living</p>
-            <p className="mt-2 text-slate-600">
+            <p className="mt-3 text-2xl font-bold text-slate-900 dark:text-slate-50">
+              Low-waste living
+            </p>
+            <p className="mt-2 text-slate-600 dark:text-slate-300">
               Discover sustainable options that fit urban homes, schools, and
               neighbourhoods.
             </p>
           </div>
           <div className="card-surface border border-slate-200">
-            <p className="text-sm uppercase tracking-[0.2em] text-earth">Why it matters</p>
-            <p className="mt-3 text-2xl font-bold text-slate-900">Easy to explore</p>
-            <p className="mt-2 text-slate-600">
-              Search, filter, compare, view details, and book from a single SPA.
+            <p className="text-sm uppercase tracking-[0.2em] text-earth">
+              Mobile-ready
+            </p>
+            <p className="mt-3 text-2xl font-bold text-slate-900 dark:text-slate-50">
+              Installable app
+            </p>
+            <p className="mt-2 text-slate-600 dark:text-slate-300">
+              Includes PWA install prompt, offline access, dark mode, and geolocation.
             </p>
           </div>
         </aside>
@@ -78,7 +118,7 @@ function HomePage() {
                 className="card-surface border border-slate-200"
               >
                 <h2 className="text-xl font-semibold text-forest">{category}</h2>
-                <p className="mt-2 text-slate-600">
+                <p className="mt-2 text-slate-600 dark:text-slate-300">
                   {category === "Food" &&
                     "Organic produce, urban farming tools, workshops, and community market experiences."}
                   {category === "Lifestyle" &&
@@ -100,15 +140,33 @@ function HomePage() {
       <section className="space-y-6">
         <SectionHeading
           eyebrow="Featured"
-          title="Popular picks for your demo"
-          description="These featured examples give you a balanced mix of product, workshop, and event content to demonstrate the assignment requirements."
+          title="Featured API-powered content"
+          description="These featured examples are loaded from the backend so the homepage demonstrates frontend-backend integration as well."
         />
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {featuredItems.map((item) => (
-            <ItemCard key={item.id} item={item} compact />
-          ))}
-        </div>
+        {loadingFeatured ? (
+          <div className="card-surface border border-dashed border-slate-300">
+            <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+              Loading featured items...
+            </p>
+            <p className="mt-2 text-slate-600 dark:text-slate-300">
+              Fetching featured products, workshops, and events from the Urban Harvest Hub API.
+            </p>
+          </div>
+        ) : featuredError ? (
+          <div className="card-surface border border-rose-200 bg-rose-50 dark:bg-rose-950/40">
+            <p className="text-lg font-semibold text-rose-700 dark:text-rose-300">
+              Unable to load featured items
+            </p>
+            <p className="mt-2 text-rose-600 dark:text-rose-300">{featuredError}</p>
+          </div>
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-3">
+            {featuredItems.map((item) => (
+              <ItemCard key={item.id} item={item} compact />
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
