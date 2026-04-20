@@ -4,7 +4,7 @@ import Navbar from "../components/layout/Navbar";
 
 function MainLayout() {
   return (
-    <div className="flex min-h-screen flex-col bg-sand text-slate-800">
+    <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,_rgba(47,107,79,0.08),_transparent_34%),linear-gradient(180deg,_#f6f3ec_0%,_#fdfcf8_100%)] text-slate-800">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-forest"

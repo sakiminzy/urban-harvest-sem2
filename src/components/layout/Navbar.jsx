@@ -11,9 +11,14 @@ function Navbar() {
   return (
     <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
-        <NavLink to="/" className="text-xl font-bold text-forest">
-          Urban Harvest Hub
-        </NavLink>
+        <div>
+          <NavLink to="/" className="text-xl font-bold text-forest">
+            Urban Harvest Hub
+          </NavLink>
+          <p className="mt-1 text-sm text-slate-500">
+            Eco-friendly products, workshops, and community events
+          </p>
+        </div>
 
         <nav aria-label="Main navigation" className="flex flex-wrap items-center gap-2">
           <NavLink to="/" end className={navLinkClass}>
