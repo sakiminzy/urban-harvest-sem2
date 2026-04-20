@@ -130,9 +130,11 @@ function BookingPage() {
                 id="name"
                 name="name"
                 type="text"
+                required
                 value={formData.name}
                 onChange={handleChange}
                 className="form-input"
+                aria-invalid={Boolean(errors.name)}
                 aria-describedby={errors.name ? "name-error" : undefined}
               />
               {errors.name && (
@@ -153,9 +155,11 @@ function BookingPage() {
                 id="email"
                 name="email"
                 type="email"
+                required
                 value={formData.email}
                 onChange={handleChange}
                 className="form-input"
+                aria-invalid={Boolean(errors.email)}
                 aria-describedby={errors.email ? "email-error" : undefined}
               />
               {errors.email && (
@@ -175,9 +179,11 @@ function BookingPage() {
               <select
                 id="selectedItem"
                 name="selectedItem"
+                required
                 value={formData.selectedItem}
                 onChange={handleChange}
                 className="form-input"
+                aria-invalid={Boolean(errors.selectedItem)}
                 aria-describedby={
                   errors.selectedItem ? "selected-item-error" : undefined
                 }
@@ -222,6 +228,7 @@ function BookingPage() {
                     : "bg-emerald-50 text-emerald-700"
                 }`}
                 aria-live="polite"
+                role={Object.keys(errors).length > 0 ? "alert" : "status"}
               >
                 {message}
               </p>

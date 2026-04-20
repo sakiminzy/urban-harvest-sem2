@@ -25,7 +25,7 @@ function WeatherPanel({ weather, loading, error }) {
               Current conditions
             </p>
             <p className="mt-2 text-3xl font-bold text-slate-900">
-              {weather.temperature}°C
+              {weather.temperature}&deg;C
             </p>
             <p className="mt-2 text-slate-600">{weather.summary}</p>
           </div>
@@ -35,7 +35,7 @@ function WeatherPanel({ weather, loading, error }) {
               Planning info
             </p>
             <p className="mt-2 text-slate-900">
-              High {weather.maxTemperature}°C / Low {weather.minTemperature}°C
+              High {weather.maxTemperature}&deg;C / Low {weather.minTemperature}&deg;C
             </p>
             <p className="mt-2 text-slate-600">
               Wind speed: {weather.windSpeed} km/h
