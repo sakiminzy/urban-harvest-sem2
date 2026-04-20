@@ -1,43 +1,56 @@
-import mongoose from "mongoose";
-import Item from "../models/Item.js";
+import { db } from "../config/firebase.js";
 
-function buildItemQuery(searchParams) {
-  const query = {};
+const itemsCollection = db.collection("items");
 
-  if (searchParams.category) {
-    query.category = searchParams.category;
+function formatFirestoreDocument(document) {
+  return {
+    _id: document.id,
+    ...document.data(),
+  };
+}
+
+function matchesSearch(item, searchTerm) {
+  if (!searchTerm) {
+    return true;
   }
 
-  if (searchParams.type) {
-    query.type = searchParams.type;
-  }
+  const normalizedSearch = searchTerm.toLowerCase();
 
-  if (searchParams.featured !== undefined) {
-    query.featured = searchParams.featured === "true";
-  }
+  return [
+    item.title,
+    item.description,
+    item.location,
+    item.category,
+    item.type,
+    item.slug,
+  ]
+    .filter(Boolean)
+    .some((value) => value.toLowerCase().includes(normalizedSearch));
+}
 
-  if (searchParams.search) {
-    query.$or = [
-      { title: { $regex: searchParams.search, $options: "i" } },
-      { description: { $regex: searchParams.search, $options: "i" } },
-      { location: { $regex: searchParams.search, $options: "i" } },
-      { category: { $regex: searchParams.search, $options: "i" } },
-      { type: { $regex: searchParams.search, $options: "i" } },
-    ];
-  }
+function filterItems(items, query) {
+  return items.filter((item) => {
+    const categoryMatch = !query.category || item.category === query.category;
+    const typeMatch = !query.type || item.type === query.type;
+    const featuredMatch =
+      query.featured === undefined ||
+      item.featured === (query.featured === "true");
+    const searchMatch = matchesSearch(item, query.search);
 
-  return query;
+    return categoryMatch && typeMatch && featuredMatch && searchMatch;
+  });
 }
 
 async function getItems(request, response, next) {
   try {
-    const query = buildItemQuery(request.query);
-    const items = await Item.find(query).sort({ createdAt: -1 });
+    const snapshot = await itemsCollection.get();
+    const items = snapshot.docs.map(formatFirestoreDocument);
+    const filteredItems = filterItems(items, request.query);
 
     response.status(200).json({
       success: true,
-      count: items.length,
-      data: items,
+      count: filteredItems.length,
+      data: filteredItems,
     });
   } catch (error) {
     next(error);
@@ -48,11 +61,14 @@ async function getItemById(request, response, next) {
   try {
     const { id } = request.params;
 
-    const item = mongoose.Types.ObjectId.isValid(id)
-      ? await Item.findById(id)
-      : await Item.findOne({ slug: id });
+    let document = await itemsCollection.doc(id).get();
 
-    if (!item) {
+    if (!document.exists) {
+      const slugSnapshot = await itemsCollection.where("slug", "==", id).limit(1).get();
+      document = slugSnapshot.docs[0];
+    }
+
+    if (!document || !document.exists) {
       return response.status(404).json({
         success: false,
         message: "Item not found.",
@@ -61,7 +77,7 @@ async function getItemById(request, response, next) {
 
     response.status(200).json({
       success: true,
-      data: item,
+      data: formatFirestoreDocument(document),
     });
   } catch (error) {
     next(error);
@@ -70,12 +86,21 @@ async function getItemById(request, response, next) {
 
 async function createItem(request, response, next) {
   try {
-    const item = await Item.create(request.body);
+    const itemData = {
+      ...request.body,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await itemsCollection.doc(itemData.slug).set(itemData);
 
     response.status(201).json({
       success: true,
       message: "Item created successfully.",
-      data: item,
+      data: {
+        _id: itemData.slug,
+        ...itemData,
+      },
     });
   } catch (error) {
     next(error);
@@ -85,28 +110,28 @@ async function createItem(request, response, next) {
 async function updateItem(request, response, next) {
   try {
     const { id } = request.params;
+    const documentReference = itemsCollection.doc(id);
+    const existingItem = await documentReference.get();
 
-    const item = mongoose.Types.ObjectId.isValid(id)
-      ? await Item.findByIdAndUpdate(id, request.body, {
-          new: true,
-          runValidators: true,
-        })
-      : await Item.findOneAndUpdate({ slug: id }, request.body, {
-          new: true,
-          runValidators: true,
-        });
-
-    if (!item) {
+    if (!existingItem.exists) {
       return response.status(404).json({
         success: false,
         message: "Item not found.",
       });
     }
 
+    const updatedData = {
+      ...request.body,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await documentReference.set(updatedData, { merge: true });
+    const updatedItem = await documentReference.get();
+
     response.status(200).json({
       success: true,
       message: "Item updated successfully.",
-      data: item,
+      data: formatFirestoreDocument(updatedItem),
     });
   } catch (error) {
     next(error);
@@ -116,17 +141,17 @@ async function updateItem(request, response, next) {
 async function deleteItem(request, response, next) {
   try {
     const { id } = request.params;
+    const documentReference = itemsCollection.doc(id);
+    const existingItem = await documentReference.get();
 
-    const item = mongoose.Types.ObjectId.isValid(id)
-      ? await Item.findByIdAndDelete(id)
-      : await Item.findOneAndDelete({ slug: id });
-
-    if (!item) {
+    if (!existingItem.exists) {
       return response.status(404).json({
         success: false,
         message: "Item not found.",
       });
     }
+
+    await documentReference.delete();
 
     response.status(200).json({
       success: true,

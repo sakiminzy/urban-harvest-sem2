@@ -25,3 +25,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables
+.env
+
+# Firebase keys
+*urban-harvest-database-firebase-adminsdk-fbsvc-d829a6f485.json
+
+

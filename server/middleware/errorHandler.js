@@ -1,25 +1,17 @@
 function errorHandler(error, request, response, next) {
   console.error(error);
 
-  if (error.name === "ValidationError") {
-    return response.status(400).json({
-      success: false,
-      message: "Validation failed.",
-      errors: Object.values(error.errors).map((item) => item.message),
-    });
-  }
-
-  if (error.code === 11000) {
+  if (error.code === 6 || error.code === "already-exists") {
     return response.status(409).json({
       success: false,
-      message: "A record with that unique value already exists.",
+      message: "A record with that identifier already exists.",
     });
   }
 
-  if (error.name === "CastError") {
+  if (error.code === 5 || error.code === "not-found") {
     return response.status(400).json({
       success: false,
-      message: "Invalid resource identifier.",
+      message: "The requested Firestore document could not be found.",
     });
   }
 

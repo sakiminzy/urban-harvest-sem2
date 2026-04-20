@@ -1,20 +1,20 @@
-import mongoose from "mongoose";
+import { db } from "../config/firebase.js";
 
-function getHealth(request, response) {
-  const readyStates = {
-    0: "disconnected",
-    1: "connected",
-    2: "connecting",
-    3: "disconnecting",
-  };
+async function getHealth(request, response, next) {
+  try {
+    await db.collection("items").limit(1).get();
 
-  response.status(200).json({
-    success: true,
-    message: "Urban Harvest Hub API is running.",
-    environment: process.env.NODE_ENV || "development",
-    database: readyStates[mongoose.connection.readyState] || "unknown",
-    timestamp: new Date().toISOString(),
-  });
+    response.status(200).json({
+      success: true,
+      message: "Urban Harvest Hub API is running.",
+      environment: process.env.NODE_ENV || "development",
+      database: "connected",
+      databaseType: "cloud-firestore",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    next(error);
+  }
 }
 
 export { getHealth };
